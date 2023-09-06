@@ -1,6 +1,6 @@
 SHELL := /bin/bash
 
-AWS_PROFILE ?= sunrise2023-z
+AWS_PROFILE ?= sunrise2023-a
 
 #ARTIFACTS_COMMIT ?= $(shell git rev-parse HEAD)
 ARTIFACTS_COMMIT := latest
