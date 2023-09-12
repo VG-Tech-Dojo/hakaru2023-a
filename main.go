@@ -13,20 +13,7 @@ import (
 var db *sql.DB
 
 func main() {
-	dataSourceName := os.Getenv("HAKARU_DATASOURCENAME")
-	if dataSourceName == "" {
-		dataSourceName = "root:password@tcp(127.0.0.1:13306)/hakaru"
-	}
-
-	db, err := sql.Open("mysql", dataSourceName)
-
-	if err != nil {
-		panic(err.Error())
-	}
 	defer db.Close()
-
-	db.SetMaxOpenConns(30)
-	db.SetMaxIdleConns(30)
 
 	http.HandleFunc("/hakaru", hakaruHandler)
 	http.HandleFunc("/ok", func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(200) })
@@ -38,6 +25,16 @@ func main() {
 }
 
 func hakaruHandler(w http.ResponseWriter, r *http.Request) {
+	dataSourceName := os.Getenv("HAKARU_DATASOURCENAME")
+	if dataSourceName == "" {
+		dataSourceName = "root:password@tcp(127.0.0.1:13306)/hakaru"
+	}
+
+	db, err := sql.Open("mysql", dataSourceName)
+	if err != nil {
+		panic(err.Error())
+	}
+
 	stmt, e := db.Prepare("INSERT INTO eventlog(at, name, value) values(NOW(), ?, ?)")
 	if e != nil {
 		panic(e.Error())
