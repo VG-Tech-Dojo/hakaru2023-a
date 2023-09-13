@@ -6,8 +6,9 @@ import (
 
 	"database/sql"
 
-	_ "github.com/go-sql-driver/mysql"
 	"os"
+
+	_ "github.com/go-sql-driver/mysql"
 )
 
 var db *sql.DB
@@ -49,6 +50,12 @@ func hakaruHandler(w http.ResponseWriter, r *http.Request) {
 
 	name := r.URL.Query().Get("name")
 	value := r.URL.Query().Get("value")
+
+	stats := db.Stats()
+
+	waitDuration := stats.WaitDuration
+	log.Printf("waitDuration: ")
+	log.Print(waitDuration)
 
 	_, err := stmt.Exec(name, value)
 	if err != nil {
