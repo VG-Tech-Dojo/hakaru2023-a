@@ -25,7 +25,8 @@ func init() {
 		log.Fatalf("Failed to open database connection: %v", err)
 	}
 
-	db.SetMaxOpenConns(55)
+	db.SetMaxOpenConns(50)
+	db.SetMaxIdleConns(30)
 }
 
 func main() {
@@ -49,7 +50,10 @@ func hakaruHandler(w http.ResponseWriter, r *http.Request) {
 	name := r.URL.Query().Get("name")
 	value := r.URL.Query().Get("value")
 
-	_, _ = stmt.Exec(name, value)
+	_, err := stmt.Exec(name, value)
+	if err != nil {
+		panic(err.Error())
+	}
 
 	origin := r.Header.Get("Origin")
 	if origin != "" {
