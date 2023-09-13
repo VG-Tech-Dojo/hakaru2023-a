@@ -25,7 +25,7 @@ func init() {
 		log.Fatalf("Failed to open database connection: %v", err)
 	}
 
-	db.SetMaxOpenConns(60) // max_connections = 60
+	db.SetMaxOpenConns(55)
 }
 
 func main() {
