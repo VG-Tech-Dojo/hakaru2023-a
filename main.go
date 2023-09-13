@@ -53,9 +53,9 @@ func hakaruHandler(w http.ResponseWriter, r *http.Request) {
 
 	stats := db.Stats()
 
-	waitCount := stats.WaitCount
 	waitDuration := stats.WaitDuration
-	log.Printf("waitCount: %d, waitDuration: %v", waitCount, waitDuration)
+	log.Printf("waitDuration: ")
+	log.Print(waitDuration)
 
 	_, err := stmt.Exec(name, value)
 	if err != nil {
