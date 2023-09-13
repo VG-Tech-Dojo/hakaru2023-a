@@ -59,14 +59,9 @@ func main() {
  * @query INSERT INTO eventlog(at, name, value) VALUES ('', '', ''), ('', '', ''), ('', '', '')
  */
 func bulkInsert() {
-	eventBufferLock.Lock()
-	defer eventBufferLock.Unlock()
-
 	if (len(eventBuffer)) == 0 {
 		return
 	}
-
-	log.Printf("[BULK] Start: %d", len(eventBuffer))
 
 	query := "INSERT INTO eventlog(at, name, value) VALUES"
 	values := []interface{}{}
@@ -77,15 +72,12 @@ func bulkInsert() {
 	}
 	query = query[:len(query)-1] // 最後のカンマを削除
 
-	// 直接 SQL を実行しているが動的プリペアドステートメントのため SQL インジェクションの心配はない
 	_, err := db.Exec(query, values...)
 	if err != nil {
 		panic(err.Error())
 	}
 
-	eventBuffer = eventBuffer[:0] // バッファーをクリア
-
-	log.Printf("[BULK] End: %d", len(eventBuffer))
+	eventBuffer = eventBuffer[:0]
 }
 
 func hakaruHandler(w http.ResponseWriter, r *http.Request) {
@@ -107,7 +99,7 @@ func hakaruHandler(w http.ResponseWriter, r *http.Request) {
 	eventBuffer = append(eventBuffer, Event{Name: name, Value: valueInt, At: at})
 	if (len(eventBuffer)) >= batchThreshold {
 		log.Printf("[HAKARU] Bulk Triggered: %d", len(eventBuffer))
-		go bulkInsert()
+		bulkInsert()
 	}
 	eventBufferLock.Unlock()
 
