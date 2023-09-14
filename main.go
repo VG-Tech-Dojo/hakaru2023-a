@@ -67,7 +67,12 @@ func eventCollector() {
 		eventBufferLock.Lock()
 		if (len(eventBuffer)) > 0 {
 			log.Printf("[HAKARU-GC] Bulk Triggered: %d", len(eventBuffer))
-			bulkInsert()
+
+			clone := make([]Event, len(eventBuffer))
+			copy(clone, eventBuffer)
+			eventBuffer = eventBuffer[:0]
+
+			go bulkInsert(clone)
 			log.Printf("[HAKARU-GC] Bulk Inserted Time: %dms", time.Since(now).Milliseconds())
 		}
 		eventBufferLock.Unlock()
@@ -80,8 +85,8 @@ func eventCollector() {
  * eventBuffer が閾値を超えたら Bulk Insert する
  * @query INSERT INTO eventlog(at, name, value) VALUES ('', '', ''), ('', '', ''), ('', '', '')
  */
-func bulkInsert() {
-	if (len(eventBuffer)) == 0 {
+func bulkInsert(buf []Event) {
+	if (len(buf)) == 0 {
 		return
 	}
 
@@ -93,7 +98,7 @@ func bulkInsert() {
 	query := "INSERT INTO eventlog(at, name, value) VALUES"
 	values := []interface{}{}
 
-	for _, event := range eventBuffer {
+	for _, event := range buf {
 		query += "(?, ?, ?),"
 		values = append(values, event.At, event.Name, event.Value)
 	}
@@ -108,8 +113,6 @@ func bulkInsert() {
 	}
 
 	log.Printf("[BULk] Executed Query Time: %dms", time.Since(now).Milliseconds())
-
-	eventBuffer = eventBuffer[:0]
 }
 
 func hakaruHandler(w http.ResponseWriter, r *http.Request) {
@@ -134,7 +137,12 @@ func hakaruHandler(w http.ResponseWriter, r *http.Request) {
 	if len(eventBuffer) >= batchThreshold {
 		log.Printf("[HAKARU] Bulk Triggered: %d", len(eventBuffer))
 		now := time.Now()
-		bulkInsert()
+
+		clone := make([]Event, len(eventBuffer))
+		copy(clone, eventBuffer)
+		eventBuffer = eventBuffer[:0]
+
+		go bulkInsert(clone)
 		log.Printf("[HAKARU] Bulk Inserted Time: %dms", time.Since(now).Milliseconds())
 	}
 	eventBufferLock.Unlock()
