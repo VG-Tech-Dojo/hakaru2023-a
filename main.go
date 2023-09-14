@@ -42,6 +42,8 @@ func init() {
 
 	db.SetMaxOpenConns(50)
 	db.SetMaxIdleConns(30)
+
+	go eventCollector()
 }
 
 func main() {
@@ -51,6 +53,25 @@ func main() {
 	// start server
 	if err := http.ListenAndServe(":8081", nil); err != nil {
 		log.Fatal(err)
+	}
+}
+
+/**
+ * eventBuffer を10秒ごとに Bulk Insert する
+ */
+func eventCollector() {
+	for {
+		now := time.Now()
+
+		eventBufferLock.Lock()
+		if (len(eventBuffer)) > 0 {
+			log.Printf("[HAKARU-GC] Bulk Triggered: %d", len(eventBuffer))
+			bulkInsert()
+			log.Printf("[HAKARU-GC] Bulk Inserted Time: %dms", time.Since(now).Milliseconds())
+		}
+		eventBufferLock.Unlock()
+
+		time.Sleep(10 * time.Second)
 	}
 }
 
