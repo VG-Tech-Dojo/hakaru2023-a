@@ -41,8 +41,8 @@ func init() {
 		log.Fatalf("Failed to open database connection: %v", err)
 	}
 
-	db.SetMaxOpenConns(50)
-	db.SetMaxIdleConns(30)
+	db.SetMaxOpenConns(15)
+	db.SetMaxIdleConns(10)
 
 	go eventCollector()
 }
