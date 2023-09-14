@@ -63,6 +63,11 @@ func bulkInsert() {
 		return
 	}
 
+	now := time.Now()
+
+	stats := db.Stats()
+	log.Printf("[BULK] Connection WaitCount: %v", stats.WaitCount)
+
 	query := "INSERT INTO eventlog(at, name, value) VALUES"
 	values := []interface{}{}
 
@@ -72,10 +77,15 @@ func bulkInsert() {
 	}
 	query = query[:len(query)-1] // 最後のカンマを削除
 
+	log.Printf("[BULK] Generated Query Time: %dms", time.Since(now).Milliseconds())
+	now = time.Now()
+
 	_, err := db.Exec(query, values...)
 	if err != nil {
 		panic(err.Error())
 	}
+
+	log.Printf("[BULk] Executed Query Time: %dms", time.Since(now).Milliseconds())
 
 	eventBuffer = eventBuffer[:0]
 }
@@ -99,7 +109,9 @@ func hakaruHandler(w http.ResponseWriter, r *http.Request) {
 	eventBuffer = append(eventBuffer, Event{Name: name, Value: valueInt, At: at})
 	if (len(eventBuffer)) >= batchThreshold {
 		log.Printf("[HAKARU] Bulk Triggered: %d", len(eventBuffer))
+		now := time.Now()
 		bulkInsert()
+		log.Printf("[HAKARU] Bulk Inserted Time: %dms", time.Since(now).Milliseconds())
 	}
 	eventBufferLock.Unlock()
 
