@@ -91,6 +91,8 @@ func bulkInsert() {
 }
 
 func hakaruHandler(w http.ResponseWriter, r *http.Request) {
+	requestTime := time.Now()
+
 	name := r.URL.Query().Get("name")
 	value := r.URL.Query().Get("value")
 
@@ -124,4 +126,6 @@ func hakaruHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 	w.Header().Set("Access-Control-Allow-Methods", "GET")
+
+	log.Printf("[HAKARU] Processing Time: %dms", time.Since(requestTime).Milliseconds())
 }
