@@ -9,8 +9,9 @@ import (
 
 	"database/sql"
 
-	_ "github.com/go-sql-driver/mysql"
 	"os"
+
+	_ "github.com/go-sql-driver/mysql"
 )
 
 type Event struct {
@@ -19,7 +20,7 @@ type Event struct {
 	At    string
 }
 
-const batchThreshold = 100
+const batchThreshold = 200
 
 var (
 	db              *sql.DB
@@ -130,7 +131,7 @@ func hakaruHandler(w http.ResponseWriter, r *http.Request) {
 
 	eventBufferLock.Lock()
 	eventBuffer = append(eventBuffer, Event{Name: name, Value: valueInt, At: at})
-	if (len(eventBuffer)) >= batchThreshold {
+	if len(eventBuffer) >= batchThreshold {
 		log.Printf("[HAKARU] Bulk Triggered: %d", len(eventBuffer))
 		now := time.Now()
 		bulkInsert()
