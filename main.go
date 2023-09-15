@@ -20,7 +20,7 @@ type Event struct {
 	At    string
 }
 
-const batchThreshold = 200
+const batchThreshold = 4000
 
 var (
 	db              *sql.DB
